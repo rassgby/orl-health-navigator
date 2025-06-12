@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Hospital, 
   LayoutDashboard, 
@@ -10,7 +10,12 @@ import {
   TrendingUp,
   Bell,
   HelpCircle,
-  LogOut
+  LogOut,
+  Users,
+  Stethoscope,
+  ClipboardList,
+  UserCheck,
+  Heart
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -27,7 +32,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 
-const mainMenuItems = [
+// Menus pour les patients
+const patientMenuItems = [
   {
     title: "Tableau de bord",
     url: "/dashboard",
@@ -44,14 +50,48 @@ const mainMenuItems = [
     icon: FileText,
   },
   {
+    title: "Mes rendez-vous",
+    url: "/appointments",
+    icon: Calendar,
+  },
+  {
+    title: "Suivi médical",
+    url: "/medical-history",
+    icon: Heart,
+  },
+];
+
+// Menus pour les médecins
+const doctorMenuItems = [
+  {
+    title: "Tableau de bord",
+    url: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Patients",
+    url: "/patients",
+    icon: Users,
+  },
+  {
+    title: "Diagnostics à valider",
+    url: "/pending-diagnostics",
+    icon: ClipboardList,
+  },
+  {
+    title: "Consultations",
+    url: "/consultations",
+    icon: Stethoscope,
+  },
+  {
+    title: "Planning",
+    url: "/schedule",
+    icon: Calendar,
+  },
+  {
     title: "Statistiques",
     url: "/stats",
     icon: TrendingUp,
-  },
-  {
-    title: "Rendez-vous",
-    url: "/appointments",
-    icon: Calendar,
   },
 ];
 
@@ -80,22 +120,37 @@ const accountMenuItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const [userInfo, setUserInfo] = useState<any>(null);
+
+  useEffect(() => {
+    const storedUserInfo = localStorage.getItem("userInfo");
+    if (storedUserInfo) {
+      setUserInfo(JSON.parse(storedUserInfo));
+    }
+  }, []);
 
   const handleLogout = () => {
     console.log("Déconnexion");
+    localStorage.removeItem("userType");
+    localStorage.removeItem("userInfo");
     window.location.href = "/";
   };
+
+  const isDoctor = userInfo?.userType === "doctor";
+  const menuItems = isDoctor ? doctorMenuItems : patientMenuItems;
 
   return (
     <Sidebar className="border-r border-border bg-sidebar">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center space-x-3 px-4 py-6">
-          <div className="bg-primary text-primary-foreground p-2 rounded-lg">
-            <Hospital className="h-6 w-6" />
+          <div className={`p-2 rounded-lg ${isDoctor ? 'bg-green-600' : 'bg-primary'} text-white`}>
+            {isDoctor ? <Stethoscope className="h-6 w-6" /> : <Hospital className="h-6 w-6" />}
           </div>
           <div>
             <h1 className="text-lg font-bold text-sidebar-foreground">DiagnosticORL</h1>
-            <p className="text-xs text-sidebar-foreground/60">Plateforme médicale</p>
+            <p className="text-xs text-sidebar-foreground/60">
+              {isDoctor ? "Espace Médecin" : "Espace Patient"}
+            </p>
           </div>
         </div>
       </SidebarHeader>
@@ -107,7 +162,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainMenuItems.map((item) => (
+              {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild
@@ -153,12 +208,19 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border">
         <div className="p-4">
           <div className="flex items-center space-x-3 mb-4 p-3 bg-sidebar-accent rounded-lg">
-            <div className="bg-primary text-primary-foreground p-2 rounded-full">
-              <User className="h-4 w-4" />
+            <div className={`p-2 rounded-full ${isDoctor ? 'bg-green-600' : 'bg-primary'} text-white`}>
+              {isDoctor ? <UserCheck className="h-4 w-4" /> : <User className="h-4 w-4" />}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">Jean Dupont</p>
-              <p className="text-xs text-sidebar-foreground/60 truncate">jean.dupont@email.com</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                {userInfo ? `${isDoctor ? 'Dr. ' : ''}${userInfo.firstName} ${userInfo.lastName}` : 'Utilisateur'}
+              </p>
+              <p className="text-xs text-sidebar-foreground/60 truncate">
+                {userInfo?.email || 'email@exemple.com'}
+              </p>
+              {isDoctor && userInfo?.speciality && (
+                <p className="text-xs text-green-600 font-medium">{userInfo.speciality}</p>
+              )}
             </div>
           </div>
           <Button 

@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Hospital, Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Hospital, Eye, EyeOff, Mail, Lock, Stethoscope, Heart } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userType, setUserType] = useState<"patient" | "doctor">("patient");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -20,7 +22,18 @@ const Login = () => {
     
     // Simulation de connexion
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("Connexion avec:", { email, password });
+    console.log("Connexion avec:", { email, password, userType });
+    
+    // Stocker le type d'utilisateur pour le dashboard
+    localStorage.setItem("userType", userType);
+    localStorage.setItem("userInfo", JSON.stringify({
+      firstName: userType === "doctor" ? "Dr. Jean" : "Jean",
+      lastName: "Dupont",
+      email: email,
+      userType: userType,
+      speciality: userType === "doctor" ? "ORL" : undefined
+    }));
+    
     navigate("/dashboard");
     setIsLoading(false);
   };
@@ -36,7 +49,7 @@ const Login = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground">DiagnosticORL</h1>
-              <p className="text-sm text-muted-foreground">Diagnostic ORL en ligne</p>
+              <p className="text-sm text-muted-foreground">Plateforme médicale collaborative</p>
             </div>
           </div>
         </div>
@@ -47,11 +60,36 @@ const Login = () => {
               Connexion
             </CardTitle>
             <CardDescription className="text-base">
-              Connectez-vous à votre compte pour accéder au diagnostic
+              Connectez-vous à votre compte pour accéder à la plateforme
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Type d'utilisateur */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Type de compte</Label>
+                <RadioGroup 
+                  value={userType} 
+                  onValueChange={(value) => setUserType(value as "patient" | "doctor")}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <div className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer">
+                    <RadioGroupItem value="patient" id="patient" />
+                    <Label htmlFor="patient" className="flex items-center space-x-2 cursor-pointer">
+                      <Heart className="h-4 w-4 text-blue-600" />
+                      <span>Patient</span>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:bg-green-50 transition-colors cursor-pointer">
+                    <RadioGroupItem value="doctor" id="doctor" />
+                    <Label htmlFor="doctor" className="flex items-center space-x-2 cursor-pointer">
+                      <Stethoscope className="h-4 w-4 text-green-600" />
+                      <span>Médecin</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                 <div className="relative">

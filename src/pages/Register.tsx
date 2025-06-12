@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Hospital, Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Hospital, Eye, EyeOff, Mail, Lock, User, Stethoscope, Heart } from "lucide-react";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +14,10 @@ const Register = () => {
     lastName: "",
     email: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    userType: "patient" as "patient" | "doctor",
+    speciality: "",
+    licenseNumber: ""
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -32,11 +36,27 @@ const Register = () => {
       return;
     }
 
+    if (formData.userType === "doctor" && (!formData.speciality || !formData.licenseNumber)) {
+      alert("Veuillez remplir tous les champs requis pour les médecins");
+      return;
+    }
+
     setIsLoading(true);
     
     // Simulation d'inscription
     await new Promise(resolve => setTimeout(resolve, 1500));
     console.log("Inscription avec:", formData);
+    
+    // Stocker le type d'utilisateur pour le dashboard
+    localStorage.setItem("userType", formData.userType);
+    localStorage.setItem("userInfo", JSON.stringify({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      userType: formData.userType,
+      speciality: formData.speciality
+    }));
+    
     navigate("/dashboard");
     setIsLoading(false);
   };
@@ -52,7 +72,7 @@ const Register = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground">DiagnosticORL</h1>
-              <p className="text-sm text-muted-foreground">Diagnostic ORL en ligne</p>
+              <p className="text-sm text-muted-foreground">Plateforme médicale collaborative</p>
             </div>
           </div>
         </div>
@@ -63,11 +83,36 @@ const Register = () => {
               Inscription
             </CardTitle>
             <CardDescription className="text-base">
-              Créez votre compte pour accéder au diagnostic ORL
+              Créez votre compte pour accéder à la plateforme
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Type d'utilisateur */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Type de compte</Label>
+                <RadioGroup 
+                  value={formData.userType} 
+                  onValueChange={(value) => handleChange("userType", value)}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <div className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer">
+                    <RadioGroupItem value="patient" id="patient" />
+                    <Label htmlFor="patient" className="flex items-center space-x-2 cursor-pointer">
+                      <Heart className="h-4 w-4 text-blue-600" />
+                      <span>Patient</span>
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:bg-green-50 transition-colors cursor-pointer">
+                    <RadioGroupItem value="doctor" id="doctor" />
+                    <Label htmlFor="doctor" className="flex items-center space-x-2 cursor-pointer">
+                      <Stethoscope className="h-4 w-4 text-green-600" />
+                      <span>Médecin</span>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName" className="text-sm font-medium">Prénom</Label>
@@ -101,6 +146,37 @@ const Register = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Champs spécifiques aux médecins */}
+              {formData.userType === "doctor" && (
+                <div className="space-y-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <h4 className="font-medium text-green-900">Informations professionnelles</h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="speciality" className="text-sm font-medium">Spécialité</Label>
+                    <Input
+                      id="speciality"
+                      type="text"
+                      placeholder="ORL, Médecine générale..."
+                      value={formData.speciality}
+                      onChange={(e) => handleChange("speciality", e.target.value)}
+                      className="h-12 bg-white border-green-200 focus:border-green-500 focus:ring-green-500"
+                      required={formData.userType === "doctor"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="licenseNumber" className="text-sm font-medium">Numéro d'ordre</Label>
+                    <Input
+                      id="licenseNumber"
+                      type="text"
+                      placeholder="123456789"
+                      value={formData.licenseNumber}
+                      onChange={(e) => handleChange("licenseNumber", e.target.value)}
+                      className="h-12 bg-white border-green-200 focus:border-green-500 focus:ring-green-500"
+                      required={formData.userType === "doctor"}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">Email</Label>
