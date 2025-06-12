@@ -1,5 +1,6 @@
 
 import { Hospital, Stethoscope } from "lucide-react";
+import AuthButtons from "./AuthButtons";
 
 const Header = () => {
   return (
@@ -15,9 +16,12 @@ const Header = () => {
               <p className="text-sm text-muted-foreground">Diagnostic ORL en ligne</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2 text-muted-foreground">
-            <Stethoscope className="h-5 w-5" />
-            <span className="text-sm">Consultation médicale recommandée</span>
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2 text-muted-foreground">
+              <Stethoscope className="h-5 w-5" />
+              <span className="text-sm">Consultation médicale recommandée</span>
+            </div>
+            <AuthButtons />
           </div>
         </div>
       </div>
